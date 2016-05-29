@@ -116,7 +116,12 @@ $(document).ready(function () {
 </div>
 
 
+<div id="synopsis" class="section level1">
+<h1>Synopsis</h1>
 <p>Github repository: <a href="https://github.com/spymark/practicalmachinelearning" class="uri">https://github.com/spymark/practicalmachinelearning</a></p>
+</div>
+<div id="setup" class="section level1">
+<h1>Setup</h1>
 <p>We are loading the libraries needed, skipping the version warning messages.</p>
 <pre class="r"><code>suppressWarnings(suppressMessages(library(AppliedPredictiveModeling)))
 suppressWarnings(suppressMessages(library(caret)))
@@ -124,6 +129,9 @@ suppressWarnings(suppressMessages(library(dplyr)))</code></pre>
 <p>Setting working directory and loading in the training data.</p>
 <pre class="r"><code>setwd('D:\\Coursera\\Practical Machine Learning\\project')
 training &lt;- read.csv(&quot;pml-training.csv&quot;, header = TRUE)</code></pre>
+</div>
+<div id="variable-selection" class="section level1">
+<h1>Variable Selection</h1>
 <p>After inspection of the training data, several fields were deemed to have little to no explanatory power. These fields are excluded from the data set that will be used for the model building. Apart from that fact, including the entire set of fields was leading to severely increased processing time with unnoticeable difference in prediction improvement. Therefore, these fields are dropped.</p>
 <pre class="r"><code>training &lt;- training%&gt;%select(-(kurtosis_roll_belt:var_yaw_belt), -(var_accel_arm:var_yaw_arm), -(kurtosis_roll_arm:amplitude_yaw_arm), 
                               -(kurtosis_roll_dumbbell:amplitude_pitch_dumbbell), - (var_accel_dumbbell:var_yaw_dumbbell),
@@ -136,18 +144,24 @@ testing &lt;- testing%&gt;%select(-(kurtosis_roll_belt:var_yaw_belt), -(var_acce
                             -(kurtosis_roll_dumbbell:amplitude_pitch_dumbbell), - (var_accel_dumbbell:var_yaw_dumbbell),
                             -kurtosis_roll_forearm,- amplitude_yaw_dumbbell, -(kurtosis_picth_forearm:amplitude_pitch_forearm),
                             -(var_accel_forearm:var_yaw_forearm), -X, - user_name, -amplitude_yaw_forearm)</code></pre>
+</div>
+<div id="model-building-and-prediction-results" class="section level1">
+<h1>Model building and prediction results</h1>
 <p>The first attempt in predicting the classe was with rpart.</p>
-<pre class="r"><code>modFit &lt;- train(classe ~., method=&quot;rpart&quot;, data = training)</code></pre>
-<pre><code>## Loading required package: rpart</code></pre>
+<pre class="r"><code>modFit1 &lt;- train(classe ~., method=&quot;rpart&quot;, data = training)</code></pre>
 <p>This didn’t turn out to be particularly successfull. We get 8/20 right</p>
-<pre class="r"><code>predict(modFit,newdata = testing)</code></pre>
+<pre class="r"><code>pred1 &lt;- predict(modFit1,newdata = testing)</code></pre>
+<pre><code>## Loading required package: rpart</code></pre>
+<pre class="r"><code>pred1</code></pre>
 <pre><code>##  [1] B A C A C C C C A A C C C A C C C B B C
 ## Levels: A B C D E</code></pre>
 <p>The other method uses was PLS</p>
 <pre class="r"><code>ctrl &lt;- trainControl(method= &quot;repeatedcv&quot;, repeats = 3, classProbs = TRUE)
 
-modFit &lt;- train(classe ~ ., data = training, method = &quot;pls&quot;,  tuneLength = 15, trControl = ctrl,  
+modFit2 &lt;- train(classe ~ ., data = training, method = &quot;pls&quot;,  tuneLength = 15, trControl = ctrl,  
                 preProc = c(&quot;center&quot;, &quot;scale&quot;))</code></pre>
+<p>The results were very good. We get 18/20 predictions right</p>
+<pre class="r"><code>pred2 &lt;- predict(modFit2,newdata = testing)</code></pre>
 <pre><code>## Loading required package: pls</code></pre>
 <pre><code>## Warning: package 'pls' was built under R version 3.2.5</code></pre>
 <pre><code>## 
@@ -158,10 +172,14 @@ modFit &lt;- train(classe ~ ., data = training, method = &quot;pls&quot;,  tuneL
 <pre><code>## The following object is masked from 'package:stats':
 ## 
 ##     loadings</code></pre>
-<p>The results were very good. We get 18/20 predictions right</p>
-<pre class="r"><code>predict(modFit,newdata = testing)</code></pre>
+<pre class="r"><code>pred2</code></pre>
 <pre><code>##  [1] B C C A A E D B A A B C B A E E A B B B
 ## Levels: A B C D E</code></pre>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<p>With rpart we observed 8/20 correct predictions in the test set. With pls we observed 18/20 correct predictions. Scaling and centering the datapoints must have helped as well.</p>
+</div>
 
 
 
